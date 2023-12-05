@@ -7,6 +7,9 @@ from elasticsearch import Elasticsearch
 from flask import Flask,render_template
 from asgiref.wsgi import WsgiToAsgi
 
+from pyspark.sql import SparkSession
+from pyspark.conf import SparkConf
+SparkSession.builder.config(conf=SparkConf())
 
 app = Flask(__name__)
 
@@ -24,11 +27,27 @@ client = Elasticsearch(
         ['https://hn-search-9858436033.us-east-1.bonsaisearch.net:443'],
         http_auth=("t2mABiEPJn","KwyXmSUap5AMfcR34Lvi"))
 
+def create_spark_configuration():
+    spark_config = None
+
+    try:
+        spark_config = (SparkSession.builder
+            .appName("ElasticsearchSparkIntegration")
+            .config("spark.jars.packages", "org.elasticsearch:elasticsearch-spark-20_2.12:7.13.4")#7.17.14
+            .config("spark.sql.execution.arrow.pyspark.enabled", "true")
+            .getOrCreate())
+        
+        logging.info("Spark connection created successfully!")
+    except Exception as e:
+        logging.error(f"Couldn't create the spark session due to exception {e}")
+
+    return spark_config
+
 @app.route("/")
 def index():
     # Successful response!
-
-    return client.info()
+    spark = create_spark_configuration()
+    return spark
 
 
 asgi_app = WsgiToAsgi(app)
