@@ -1,3 +1,6 @@
+import findspark
+findspark.init()
+
 import os, base64, re, logging
 from elasticsearch import Elasticsearch
 
