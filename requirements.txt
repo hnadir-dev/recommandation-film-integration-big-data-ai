@@ -1,4 +1,5 @@
 gunicorn
 flask
 asgiref
+pyspark
 elasticsearch==7.13.4
