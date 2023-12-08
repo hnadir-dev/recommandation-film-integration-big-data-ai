@@ -1,53 +1,63 @@
-import findspark
-findspark.init()
-
-import os, base64, re, logging
+import logging
 from elasticsearch import Elasticsearch
 
-from flask import Flask,render_template
+from flask import Flask
 from asgiref.wsgi import WsgiToAsgi
+import json
 
-from pyspark.sql import SparkSession
-from pyspark.conf import SparkConf
-SparkSession.builder.config(conf=SparkConf())
 
 app = Flask(__name__)
 
-
 logging.basicConfig(level=logging.INFO)
-
-es_header = [{
-'host': 'https://hn-search-9858436033.us-east-1.bonsaisearch.net',
-'port': 443,
-'use_ssl': True,
-'http_auth': ("i1gd3mbo4r","sf8q52fulp")
-}]
 
 client = Elasticsearch(
         ['https://hn-search-9858436033.us-east-1.bonsaisearch.net:443'],
         http_auth=("t2mABiEPJn","KwyXmSUap5AMfcR34Lvi"))
 
-def create_spark_configuration():
-    spark_config = None
-
-    try:
-        spark_config = (SparkSession.builder
-            .appName("ElasticsearchSparkIntegration")
-            .config("spark.jars.packages", "org.elasticsearch:elasticsearch-spark-20_2.12:7.13.4")#7.17.14
-            .config("spark.sql.execution.arrow.pyspark.enabled", "true")
-            .getOrCreate())
-        
-        logging.info("Spark connection created successfully!")
-    except Exception as e:
-        logging.error(f"Couldn't create the spark session due to exception {e}")
-
-    return spark_config
 
 @app.route("/")
 def index():
     # Successful response!
-    spark = create_spark_configuration()
-    return spark
+    #spark = create_spark_configuration()
+    return 'Api'
+
+@app.route("/movies/<int:index>")
+def movies(index):
+    jsf = open('data/json/movies.json','r+')
+    data = json.load(jsf)
+
+    movies = data['results']
+
+    if index > data['count']:
+        return dict({'message':'Entre a valide index!','error_id': 404})
+    else:
+        return movies[index]
+
+@app.route("/users/<int:index>")
+def users(index):
+    jsf = open('data/json/users.json','r+')
+    data = json.load(jsf)
+
+    users = data['results']
+
+    if index > data['count']:    
+        return dict({'message':'Entre a valide index!','error_id': 404})
+    else:
+        return users[index]
+
+@app.route("/ratings/<int:index>")
+def ratings(index):
+    jsf = open('data/json/ratings.json','r+')
+    data = json.load(jsf)
+
+    ratings = data['results']
+
+    if index > data['count']:    
+        return dict({'message':'Entre a valide index!','error_id': 404})
+    else:
+        return ratings[index]
 
 
-asgi_app = WsgiToAsgi(app)
+if __name__ == '__main__':
+    app.run(debug=True)
+#asgi_app = WsgiToAsgi(app)
