@@ -6,7 +6,7 @@ from pyspark.sql import SparkSession
 from pyspark.conf import SparkConf
 SparkSession.builder.config(conf=SparkConf())
 from pyspark.sql.types import StructType, StructField, StringType,ArrayType
-from pyspark.sql.functions import from_json, col, to_date, from_unixtime, to_utc_timestamp
+from pyspark.sql.functions import from_json, concat, lit, col, to_date, from_unixtime, to_utc_timestamp
 
 import logging
 
@@ -92,7 +92,7 @@ def create_selection_df_ratings_from_kafka(spark_df):
 
     sel = (spark_df.selectExpr("CAST(value AS STRING)") \
         .select(from_json(col('value'), schema).alias('data')).select("data.*") \
-        .withColumn("umid", col('userId').cast('integer') + col('movieId').cast('integer')) \
+        .withColumn("umid", concat(col('userId'),col('movieId'))) \
         .withColumn("userId", col('userId').cast('integer')) \
         .withColumn("movieId", col('movieId').cast('integer')) \
         .withColumn("rating", col('rating').cast('integer')) \
@@ -132,17 +132,17 @@ def write_to_elasticsearch(df,index,docId):
         .save(mode="append")
 
 #Write data to Elasticsearch
-write_movies_query = (sel_movies.writeStream \
-    .outputMode("append") \
-    .option("checkpointLocation", "/tmp/elasticsearch_movies_1/") \
-    .foreachBatch(lambda batch_df, batch_id: write_to_elasticsearch(batch_df,'rec-movies-index','movieId')) \
-    .start())
+# write_movies_query = (sel_movies.writeStream \
+#     .outputMode("append") \
+#     .option("checkpointLocation", "/tmp/elasticsearch_movies_1/") \
+#     .foreachBatch(lambda batch_df, batch_id: write_to_elasticsearch(batch_df,'rec-movies-index','movieId')) \
+#     .start())
 
-write_users_query = (sel_users.writeStream \
-    .outputMode("append") \
-    .option("checkpointLocation", "/tmp/elasticsearch_users_1/") \
-    .foreachBatch(lambda batch_df, batch_id: write_to_elasticsearch(batch_df,'rec-users-index','userId')) \
-    .start())
+# write_users_query = (sel_users.writeStream \
+#     .outputMode("append") \
+#     .option("checkpointLocation", "/tmp/elasticsearch_users_1/") \
+#     .foreachBatch(lambda batch_df, batch_id: write_to_elasticsearch(batch_df,'rec-users-index','userId')) \
+#     .start())
 
 write_ratings_query = (sel_ratings.writeStream \
     .outputMode("append") \
@@ -150,6 +150,6 @@ write_ratings_query = (sel_ratings.writeStream \
     .foreachBatch(lambda batch_df, batch_id: write_to_elasticsearch(batch_df,'rec-ratings-index','umid')) \
     .start())
 
-write_movies_query.awaitTermination()
-write_users_query.awaitTermination()
+# write_movies_query.awaitTermination()
+# write_users_query.awaitTermination()
 write_ratings_query.awaitTermination()

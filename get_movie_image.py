@@ -4,10 +4,7 @@ import requests
 class MovieInfo:
     
     def get_movie_poster_url(movie_name):
-        # Replace 'YOUR_API_KEY' with your actual TMDb API key
         api_key = 'bba5904c90ac4619fc37e24c7067897a'
-        
-        # TMDb API endpoint for searching movies
         search_url = f'https://api.themoviedb.org/3/search/movie'
         
         # Parameters for the API request

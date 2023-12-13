@@ -35,25 +35,25 @@ if __name__ == '__main__':
         users_response = requests.get(usersApiUrl.format(usersCount))
         ratings_response = requests.get(ratingsApiUrl.format(ratingCount))
 
-        if "error_id" not in movies_response.json():
-            print('***************** Movie ******************')
-            producer.produce(movies_topic, key="key", value=json.dumps(movies_response.json()).encode('utf-8'))
-            producer.flush()
-            moviesCount = moviesCount + 1
-        else:
-            moviesCount = 0
+        # if "error_id" not in movies_response.json():
+        #     print('***************** Movie ******************')
+        #     producer.produce(movies_topic, key="key", value=json.dumps(movies_response.json()).encode('utf-8'))
+        #     producer.flush()
+        #     moviesCount = moviesCount + 1
+        # else:
+        #     moviesCount = 0
 
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
-        if "error_id" not in users_response.json():
-            print('***************** User ******************')
-            producer.produce(users_topic, key="key", value=json.dumps(users_response.json()).encode('utf-8'))
-            producer.flush()
-            usersCount = usersCount + 1
-        else:
-            usersCount = 0
+        # if "error_id" not in users_response.json():
+        #     print('***************** User ******************')
+        #     producer.produce(users_topic, key="key", value=json.dumps(users_response.json()).encode('utf-8'))
+        #     producer.flush()
+        #     usersCount = usersCount + 1
+        # else:
+        #     usersCount = 0
 
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
         if "error_id" not in ratings_response.json():
             print('***************** Ratings ******************')
@@ -63,4 +63,4 @@ if __name__ == '__main__':
         else:
             ratingCount = 0
         
-        time.sleep(0.5)
+        time.sleep(0.1)
